@@ -21,7 +21,7 @@ public class UserMemoryRepository extends IdGenerator {
             throw new ValidationException("A user must have an email.");
         }
 
-        emailValidator(userDtoRequest.getEmail());
+        validateEmail(userDtoRequest.getEmail());
 
         User user = userMapper.mapToUser(userDtoRequest);
         user.setId(getNextId(usersMap));
@@ -45,7 +45,7 @@ public class UserMemoryRepository extends IdGenerator {
 
         String email = userDtoRequest.getEmail();
         if (email != null) {
-            emailValidator(userDtoRequest.getEmail());
+            validateEmail(userDtoRequest.getEmail());
         }
 
         User user = usersMap.get(userId);
@@ -64,7 +64,7 @@ public class UserMemoryRepository extends IdGenerator {
         return usersMap.remove(userId);
     }
 
-    public void emailValidator(String email) {
+    private void validateEmail(String email) {
         for (User user : usersMap.values()) {
             if (user.getEmail().equals(email)) {
                 throw new DuplicatedDataException("User email already exists.");
