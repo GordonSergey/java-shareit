@@ -3,74 +3,72 @@ package ru.practicum.shareit.user;
 import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.service.IdGenerator;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
 @Repository
-public class UserMemoryRepository {
+public class UserMemoryRepository extends IdGenerator {
     private final UserMapper userMapper;
-    private final IdGenerator idGenerator;
     Map<Integer, User> usersMap = new HashMap<>();
 
-    public User.UserDto addUser(User.UserDto userDtoRequest) {
-        String email = userDtoRequest.getEmail();
-
-        if (email == null || email.isEmpty()) {
+    public User addUser(UserDto userDtoRequest) {
+        if (userDtoRequest.getEmail() == null || userDtoRequest.getEmail().isEmpty()) {
             throw new ValidationException("A user must have an email.");
         }
 
-        emailValidator(email);
+        emailValidator(userDtoRequest.getEmail());
 
         User user = userMapper.mapToUser(userDtoRequest);
-        user.setId(idGenerator.getNextId(usersMap));
-
+        user.setId(getNextId(usersMap));
         usersMap.put(user.getId(), user);
-        return userMapper.mapToUserDto(user);
-    }
 
-    public List<User.UserDto> getUsers() {
-        return usersMap.values().stream()
-                .map(userMapper::mapToUserDto)
-                .toList();
-    }
-
-    public User.UserDto getUserById(Integer userId) {
-        return userMapper.mapToUserDto(usersMap.get(userId));
-    }
-
-    public User.UserDto updateUser(User.UserDto userDtoRequest, Integer userId) {
-        User user = Optional.ofNullable(usersMap.get(userId))
-                .orElseThrow(() -> new RuntimeException("User with id " + userId + " not found."));
-
-        if (userDtoRequest.getEmail() != null) {
-            emailValidator(userDtoRequest.getEmail());
-        }
-
-        user = UserMapper.updateUserFields(user, userDtoRequest);
-        usersMap.put(userId, user);
-
-        return userMapper.mapToUserDto(user);
-    }
-
-    public User.UserDto deleteUser(Integer userId) {
-        User.UserDto user = userMapper.mapToUserDto(usersMap.get(userId));
-        usersMap.remove(userId);
         return user;
     }
 
-    public void emailValidator(String email) {
-        String emailRegex = "\\w+([\\.-]?\\w+)*@\\w+([\\.-]?\\w+)*\\.\\w{2,4}";
+    public List<User> getUsers() {
+        return new ArrayList<>(usersMap.values());
+    }
 
-        if (!Pattern.matches(emailRegex, email)) {
-            throw new ValidationException("Email is in an invalid format.");
+    public User getUserById(Integer userId) {
+        return usersMap.get(userId);
+    }
+
+    public User updateUser(UserDto userDtoRequest, Integer userId) {
+        if (!usersMap.containsKey(userId)) {
+            throw new RuntimeException("User with id " + userId + " not found.");
         }
 
-        if (usersMap.values().stream().anyMatch(user -> user.getEmail().equals(email))) {
-            throw new DuplicatedDataException("User email already exists.");
+        String email = userDtoRequest.getEmail();
+        if (email != null) {
+            emailValidator(userDtoRequest.getEmail());
+        }
+
+        User user = usersMap.get(userId);
+        if (userDtoRequest.hasName()) {
+            user.setName(userDtoRequest.getName());
+        }
+        if (userDtoRequest.hasEmail()) {
+            user.setEmail(userDtoRequest.getEmail());
+        }
+
+        usersMap.put(userId, user);
+        return user;
+    }
+
+    public User deleteUser(Integer userId) {
+        return usersMap.remove(userId);
+    }
+
+    public void emailValidator(String email) {
+        for (User user : usersMap.values()) {
+            if (user.getEmail().equals(email)) {
+                throw new DuplicatedDataException("User email already exists.");
+            }
         }
     }
 }

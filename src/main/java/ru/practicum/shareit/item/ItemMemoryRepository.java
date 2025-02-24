@@ -1,9 +1,12 @@
 package ru.practicum.shareit.item;
 
+import ru.practicum.shareit.exception.AccessDeniedException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.service.IdGenerator;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserMemoryRepository;
 
 import java.util.*;
@@ -12,57 +15,50 @@ import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
 @Repository
-public class ItemMemoryRepository {
+public class ItemMemoryRepository extends IdGenerator {
     private final ItemMapper itemMapper;
     private final UserMemoryRepository userMemoryRepository;
-    private final IdGenerator idGenerator;
     Map<Integer, Item> itemsMap = new HashMap<>();
 
     public ItemDto addItem(ItemDto itemDtoRequest, Integer userId) {
-
-        if (itemDtoRequest.getAvailable() == null) {
-            throw new ValidationException("Availability field must not be null");
-        }
-
-        if (itemDtoRequest.getName() == null || itemDtoRequest.getName().isBlank()) {
-            throw new ValidationException("Item name must not be null");
-        }
-
-        if (itemDtoRequest.getDescription() == null || itemDtoRequest.getDescription().isBlank()) {
-            throw new ValidationException("Item description must not be null");
-        }
-
         if (userMemoryRepository.getUserById(userId) == null) {
-            throw new NotFoundException("User with the given ID not found.");
+            throw new NotFoundException("User with the given ID was not found.");
         }
 
         Item item = itemMapper.mapToItem(itemDtoRequest);
-        item.setOwner(userId);
-        item.setId(idGenerator.getNextId(itemsMap));
+        item.setOwner(userMemoryRepository.getUserById(userId));
+        item.setId(getNextId(itemsMap));
         itemsMap.put(item.getId(), item);
 
         return itemMapper.mapToItemDto(item);
     }
 
-    public ItemDto updateItem(Integer itemId, ItemDto itemDtoRequest, Integer userId) {
-        Item item = Optional.ofNullable(itemsMap.get(itemId))
-                .orElseThrow(() -> new NotFoundException("Item with the given ID not found."));
-
-        if (!item.getOwner().equals(userId)) {
-            throw new NotFoundException("Only the owner can modify the item.");
+    public ItemDto updateItem(Integer itemId, ItemUpdateDto itemDtoRequest, Integer userId) {
+        if (!itemsMap.containsKey(itemId)) {
+            throw new NotFoundException("Item with the given ID was not found.");
         }
 
-        item.setName(itemDtoRequest.getName());
-        item.setDescription(itemDtoRequest.getDescription());
-        item.setAvailable(itemDtoRequest.getAvailable());
+        Integer itemsOwnerId = itemsMap.get(itemId).getOwner().getId();
+        if (!Objects.equals(itemsOwnerId, userId)) {
+            throw new AccessDeniedException("Only the owner can modify the item.");
+        }
 
-        return itemMapper.mapToItemDto(item);
+        Item updatedItem = new Item();
+        updatedItem.setName(itemDtoRequest.getName());
+        updatedItem.setDescription(itemDtoRequest.getDescription());
+        updatedItem.setAvailable(itemDtoRequest.getAvailable());
+
+        itemsMap.put(itemId, updatedItem);
+
+        return itemMapper.mapToItemDto(updatedItem);
     }
 
     public ItemDto getItem(Integer itemId) {
-        return Optional.ofNullable(itemsMap.get(itemId))
-                .map(itemMapper::mapToItemDto)
-                .orElseThrow(() -> new NotFoundException("Item with the given ID not found."));
+        if (!itemsMap.containsKey(itemId)) {
+            throw new NotFoundException("Item with the given ID was not found.");
+        }
+
+        return itemMapper.mapToItemDto(itemsMap.get(itemId));
     }
 
     public List<ItemDto> getOwnerItems(Integer ownerId) {
@@ -70,13 +66,14 @@ public class ItemMemoryRepository {
         List<ItemDto> ownerItemsList = new ArrayList<>();
 
         allItems.forEach(item -> {
-            if (Objects.equals(item.getOwner(), ownerId)) {
+            User owner = item.getOwner();
+            if (owner != null && Objects.equals(owner.getId(), ownerId)) {
                 ownerItemsList.add(itemMapper.mapToItemDto(item));
             }
         });
 
         if (ownerItemsList.isEmpty()) {
-            throw new NotFoundException("User's items not found.");
+            throw new NotFoundException("User's items were not found.");
         }
 
         return ownerItemsList;
@@ -85,20 +82,17 @@ public class ItemMemoryRepository {
     public List<ItemDto> itemSearch(String text) {
         List<ItemDto> searchItems = new ArrayList<>();
         if (text != null && !text.isBlank()) {
-
             Collection<Item> allItems = itemsMap.values();
 
             allItems.forEach(item -> {
-                if (item.getName() != null && item.getAvailable() != null && item.getAvailable().equals(true)) {
-                    if (item.getName().toLowerCase().contains(text.toLowerCase())) {
-                        searchItems.add(itemMapper.mapToItemDto(item));
-                    }
+                if (item.getName() != null && Boolean.TRUE.equals(item.getAvailable()) &&
+                        item.getName().toLowerCase().contains(text.toLowerCase())) {
+                    searchItems.add(itemMapper.mapToItemDto(item));
                 }
 
-                if (item.getDescription() != null && item.getAvailable() != null && item.getAvailable().equals(true)) {
-                    if (item.getDescription().toLowerCase().contains(text.toLowerCase())) {
-                        searchItems.add(itemMapper.mapToItemDto(item));
-                    }
+                if (item.getDescription() != null && Boolean.TRUE.equals(item.getAvailable()) &&
+                        item.getDescription().toLowerCase().contains(text.toLowerCase())) {
+                    searchItems.add(itemMapper.mapToItemDto(item));
                 }
             });
         }

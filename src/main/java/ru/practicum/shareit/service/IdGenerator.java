@@ -1,8 +1,8 @@
 package ru.practicum.shareit.service;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+
+import org.springframework.stereotype.Component;
 
 @Component
 public class IdGenerator {

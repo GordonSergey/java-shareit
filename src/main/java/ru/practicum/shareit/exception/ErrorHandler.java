@@ -1,7 +1,5 @@
 package ru.practicum.shareit.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -27,9 +25,21 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-    @Getter
-    @RequiredArgsConstructor
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDenied(final AccessDeniedException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
     public class ErrorResponse {
         private final String error;
+
+        public ErrorResponse(String error) {
+            this.error = error;
+        }
+
+        public String getError() {
+            return error;
+        }
     }
 }

@@ -1,37 +1,39 @@
 package ru.practicum.shareit.user;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserMemoryRepository userMemoryRepository;
+    private final UserMapper userMapper;
 
     @Override
-    public User.UserDto addUser(User.UserDto userDtoRequest) {
-        return userMemoryRepository.addUser(userDtoRequest);
+    public UserDto addUser(UserDto userDtoRequest) {
+        return userMapper.mapToUserDto(userMemoryRepository.addUser(userDtoRequest));
     }
 
     @Override
-    public List<User.UserDto> getUsers() {
-        return userMemoryRepository.getUsers();
+    public List<UserDto> getUsers() {
+        return userMemoryRepository.getUsers().stream().map(userMapper::mapToUserDto).toList();
     }
 
     @Override
-    public User.UserDto getUserById(Integer userId) {
-        return userMemoryRepository.getUserById(userId);
+    public UserDto getUserById(Integer userId) {
+        return userMapper.mapToUserDto(userMemoryRepository.getUserById(userId));
     }
 
     @Override
-    public User.UserDto updateUser(User.UserDto userDtoRequest, Integer userId) {
-        return userMemoryRepository.updateUser(userDtoRequest, userId);
+    public UserDto updateUser(UserDto userDtoRequest, Integer userId) {
+        return userMapper.mapToUserDto(userMemoryRepository.updateUser(userDtoRequest, userId));
     }
 
     @Override
-    public User.UserDto deleteUser(Integer userId) {
-        return userMemoryRepository.deleteUser(userId);
+    public UserDto deleteUser(Integer userId) {
+        return userMapper.mapToUserDto(userMemoryRepository.deleteUser(userId));
     }
 }
