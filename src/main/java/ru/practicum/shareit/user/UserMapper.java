@@ -1,34 +1,41 @@
 package ru.practicum.shareit.user;
 
-import ru.practicum.shareit.exception.NotFoundException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.List;
 
-@Component
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
-    public UserDto mapToUserDto(User user) {
+
+    public static UserDto mapToUserDto(User user) {
         if (user == null) {
-            throw new NotFoundException("User must not be null");
+            return null;
         }
-
-        UserDto userDto = new UserDto();
-
-        userDto.setId(user.getId());
-        userDto.setName(user.getName());
-        userDto.setEmail(user.getEmail());
-
-        return userDto;
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .build();
     }
 
-    public User mapToUser(UserDto userDto) {
-        User user = new User();
+    public static List<UserDto> mapToUserDto(Iterable<User> users) {
+        List<UserDto> result = new ArrayList<>();
 
-        user.setId(user.getId());
+        for (User user : users) {
+            result.add(mapToUserDto(user));
+        }
+
+        return result;
+    }
+
+    public static User mapToNewUser(UserDto userDto) {
+        User user = new User();
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
-
         return user;
     }
 }

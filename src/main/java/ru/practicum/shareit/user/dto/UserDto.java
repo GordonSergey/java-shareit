@@ -1,22 +1,24 @@
 package ru.practicum.shareit.user.dto;
 
-import jakarta.validation.constraints.Email;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.practicum.shareit.intf.Create;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserDto {
-    private Integer id;
+
+    private Long id;
+
+    @NotBlank(groups = Create.class, message = "Name cannot be empty")
     private String name;
-    @Email
+
+    @NotBlank(groups = Create.class, message = "Email cannot be empty")
+    @Email(groups = Create.class, message = "Email cannot be empty and must contain the '@' symbol")
     private String email;
-
-    public boolean hasEmail() {
-        return email != null && !email.isBlank();
-    }
-
-    public boolean hasName() {
-        return name != null && !name.isBlank();
-    }
 }

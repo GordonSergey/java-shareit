@@ -1,21 +1,31 @@
 package ru.practicum.shareit.user.model;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import ru.practicum.shareit.intf.Create;
 
-@NoArgsConstructor
+@Data
+@Builder
 @AllArgsConstructor
-@Getter
-@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "users", schema = "public")
 public class User {
-    private Integer id;
-    @NotBlank
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank(groups = Create.class, message = "Name cannot be empty")
+    @Column(name = "name")
     private String name;
-    @NotBlank
-    @Email
+
+    @NotBlank(groups = Create.class, message = "Email cannot be empty")
+    @Email(groups = Create.class, message = "Email cannot be empty and must contain the '@' symbol")
+    @Column(name = "email", unique = true)
     private String email;
 }
