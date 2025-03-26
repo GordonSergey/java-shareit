@@ -97,17 +97,6 @@ public class ItemServiceImpl implements ItemService {
         return itemDto;
     }
 
-    private List<CommentDto> getAuthorName(Item item) {
-        List<CommentDto> commentDtos = new ArrayList<>();
-        for (Comment comment : item.getComments()) {
-            CommentDto commentDto = CommentMapper.mapToCommentDto(comment);
-            String authorName = commentService.getNameAuthorByCommentId(comment.getId());
-            commentDto.setAuthorName(authorName);
-            commentDtos.add(commentDto);
-        }
-        return commentDtos;
-    }
-
     @Override
     @Transactional
     public ItemDto saveItem(long userId, ItemDto itemDto) {
@@ -185,6 +174,17 @@ public class ItemServiceImpl implements ItemService {
         commentDto.setAuthorName(user.getName());
 
         return commentDto;
+    }
+
+    private List<CommentDto> getAuthorName(Item item) {
+        List<CommentDto> commentDtos = new ArrayList<>();
+        for (Comment comment : item.getComments()) {
+            CommentDto commentDto = CommentMapper.mapToCommentDto(comment);
+            String authorName = commentService.getNameAuthorByCommentId(comment.getId());
+            commentDto.setAuthorName(authorName);
+            commentDtos.add(commentDto);
+        }
+        return commentDtos;
     }
 
     private BookingDto findLastBookingByItemId(long itemId) {
