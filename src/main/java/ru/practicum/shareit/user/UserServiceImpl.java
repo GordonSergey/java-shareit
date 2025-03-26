@@ -1,39 +1,83 @@
 package ru.practicum.shareit.user;
 
-import ru.practicum.shareit.user.dto.UserDto;
-
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.ResourceNotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMemoryRepository userMemoryRepository;
-    private final UserMapper userMapper;
+
+    private final UserRepository repository;
 
     @Override
-    public UserDto addUser(UserDto userDtoRequest) {
-        return userMapper.mapToUserDto(userMemoryRepository.addUser(userDtoRequest));
+    public List<UserDto> getAllUsers() {
+        List<User> users = repository.findAll();
+        return UserMapper.mapToUserDto(users);
     }
 
     @Override
-    public List<UserDto> getUsers() {
-        return userMemoryRepository.getUsers().stream().map(userMapper::mapToUserDto).toList();
+    @Transactional
+    public UserDto saveUser(UserDto userDto) {
+        if (userDto.getName() == null || userDto.getName().isBlank()) {
+            throw new ValidationException("Name cannot be empty");
+        }
+
+        if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+            throw new ValidationException("Email cannot be empty");
+        }
+
+        User user = repository.save(UserMapper.mapToNewUser(userDto));
+        return UserMapper.mapToUserDto(user);
     }
 
     @Override
-    public UserDto getUserById(Integer userId) {
-        return userMapper.mapToUserDto(userMemoryRepository.getUserById(userId));
+    public String getUserNameById(Long userId) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+        return user.getName();
     }
 
     @Override
-    public UserDto updateUser(UserDto userDtoRequest, Integer userId) {
-        return userMapper.mapToUserDto(userMemoryRepository.updateUser(userDtoRequest, userId));
+    public UserDto getUserById(long userId) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+        return UserMapper.mapToUserDto(user);
     }
 
     @Override
-    public UserDto deleteUser(Integer userId) {
-        return userMapper.mapToUserDto(userMemoryRepository.deleteUser(userId));
+    @Transactional
+    public UserDto update(long userId, UserDto userDto) {
+        User updatedUser = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+        if (userDto.getName() != null) {
+            updatedUser.setName(userDto.getName());
+        }
+
+        if (userDto.getEmail() != null && !userDto.getEmail().equals(updatedUser.getEmail())) {
+            if (repository.existsByEmail(userDto.getEmail())) {
+                throw new ConflictException("User with email '" + userDto.getEmail() + "' already exists.");
+            }
+            updatedUser.setEmail(userDto.getEmail());
+        }
+
+        repository.updateUser(userId, updatedUser.getName(), updatedUser.getEmail());
+        return UserMapper.mapToUserDto(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserById(long userId) {
+        if (userId < 1) {
+            throw new ValidationException("ID cannot be negative");
+        }
+        repository.deleteUserById(userId);
     }
 }

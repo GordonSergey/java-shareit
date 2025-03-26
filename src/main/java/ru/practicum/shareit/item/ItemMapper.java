@@ -1,31 +1,53 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.comment.CommentMapper;
+import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class ItemMapper {
-    public ItemDto mapToItemDto(Item item) {
-        ItemDto itemDto = new ItemDto();
 
-        itemDto.setId(item.getId());
-        itemDto.setName(item.getName());
-        itemDto.setAvailable(item.getAvailable());
-        itemDto.setDescription(item.getDescription());
+    public static ItemDto mapToItemDto(Item item) {
+        if (item == null) {
+            return null;
+        }
 
+        ItemDto itemDto = ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .build();
+
+        if (item.getComments() != null) {
+            List<CommentDto> commentDtos = CommentMapper.mapToCommentDto(item.getComments());
+            itemDto.setComments(commentDtos);
+        }
         return itemDto;
     }
 
-    public Item mapToItem(ItemDto itemDto) {
+    public static List<ItemDto> mapToItemDto(Iterable<Item> items) {
+        List<ItemDto> result = new ArrayList<>();
+
+        for (Item item : items) {
+            result.add(mapToItemDto(item));
+        }
+
+        return result;
+    }
+
+    public static Item mapToNewItem(ItemDto itemDto) {
         Item item = new Item();
-
-        item.setId(itemDto.getId());
         item.setName(itemDto.getName());
-        item.setAvailable(itemDto.getAvailable());
         item.setDescription(itemDto.getDescription());
-
+        item.setAvailable(itemDto.getAvailable());
+        item.setOwner(0);
+        item.setRequest(0);
         return item;
     }
 }

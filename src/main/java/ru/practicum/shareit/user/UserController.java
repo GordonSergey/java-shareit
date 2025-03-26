@@ -1,47 +1,56 @@
 package ru.practicum.shareit.user;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.intf.Create;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping(path = "/users")
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@Slf4j
 public class UserController {
+
     private final UserService userService;
 
     @PostMapping
-    public UserDto addUser(@Valid @RequestBody UserDto user) {
-        return userService.addUser(user);
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto saveUser(@Validated(Create.class) @RequestBody UserDto userDto) {
+        log.info("Received request to save new user");
+        return userService.saveUser(userDto);
     }
 
     @GetMapping
-    public List<UserDto> getUsers() {
-        return userService.getUsers();
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDto> getAllUsers() {
+        log.info("Received request to get all users");
+        return userService.getAllUsers();
     }
 
     @GetMapping("/{userId}")
-    public UserDto getUserById(@PathVariable Integer userId) {
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto getUserById(@PathVariable("userId") Long userId) {
+        log.info("Fetching user with id: {}", userId);
         return userService.getUserById(userId);
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@Valid @RequestBody UserDto user, @PathVariable Integer userId) {
-        return userService.updateUser(user, userId);
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto update(@PathVariable("userId") long userId, @RequestBody UserDto userDto) {
+        log.info("Updating user with id: {}", userId);
+        return userService.update(userId, userDto);
     }
 
     @DeleteMapping("/{userId}")
-    public UserDto deleteUser(@PathVariable Integer userId) {
-        return userService.deleteUser(userId);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public String deleteUserById(@PathVariable("userId") long userId) {
+        log.info("Deleted user with id: {}", userId);
+        userService.deleteUserById(userId);
+        return "User successfully deleted";
     }
 }
