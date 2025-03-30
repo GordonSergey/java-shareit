@@ -20,13 +20,13 @@ public class ItemDto {
 
     private Long id;
 
-    @NotBlank(groups = Create.class, message = "Name cannot be empty")
+    @NotBlank(groups = Create.class, message = "Имя не может быть пустым")
     private String name;
 
-    @NotBlank(groups = Create.class, message = "Description cannot be empty")
+    @NotBlank(groups = Create.class, message = "Описание не может быть пустым")
     private String description;
 
-    @NotNull(groups = Create.class, message = "Availability status cannot be empty")
+    @NotNull(groups = Create.class, message = "Описание не может быть пустым")
     private Boolean available;
 
     private BookingDto lastBooking;
@@ -34,4 +34,6 @@ public class ItemDto {
     private BookingDto nextBooking;
 
     private List<CommentDto> comments;
+
+    private Long requestId;
 }

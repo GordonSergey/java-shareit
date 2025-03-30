@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,7 @@ import ru.practicum.shareit.exception.ResourceNotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserDto;
 
@@ -36,18 +36,15 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final CommentService commentService;
 
-    @Value("${app.comment.delay-hours:0}")
-    private int commentDelayHours;
-
     @Override
     public List<ItemDto> findItemsByOwner(long userId) {
         List<Item> items = itemRepository.findItemsByOwner(userId);
         List<ItemDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
-            ItemDto dto = ItemMapper.mapToItemDto(item);
-            dto.setNextBooking(findNextBookingByItemId(item.getId()));
-            dto.setLastBooking(findLastBookingByItemId(item.getId()));
-            itemDtos.add(dto);
+            ItemDto b = ItemMapper.mapToItemDto(item);
+            b.setNextBooking(findNextBookingByItemId(item.getId()));
+            b.setLastBooking(findLastBookingByItemId(item.getId()));
+            itemDtos.add(b);
         }
         return itemDtos;
     }
@@ -55,11 +52,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto update(long userId, long itemId, ItemDto itemDto) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
 
         if (item.getOwner() != userId) {
-            throw new ResourceNotFoundException("User with the specified ID does not exist.");
+            throw new ResourceNotFoundException("Отсутствует user под id");
         }
 
         if (itemDto.getName() != null) {
@@ -79,22 +75,33 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getItemById(long userId, long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
+        Item item = itemRepository.findById(itemId).orElseThrow(()
+                -> new ResourceNotFoundException("Item not found with ID: " + itemId));
         ItemDto itemDto = ItemMapper.mapToItemDto(item);
 
         if (item.getOwner() != userId) {
             itemDto.setNextBooking(null);
             itemDto.setLastBooking(null);
-            List<CommentDto> commentDtos = getAuthorName(item);
+            List<CommentDto> commentDtos = getNameAuthor(item);
             itemDto.setComments(commentDtos);
         } else {
             itemDto.setNextBooking(findNextBookingByItemId(itemId));
             itemDto.setLastBooking(findLastBookingByItemId(itemId));
-            List<CommentDto> commentDtos = getAuthorName(item);
+            List<CommentDto> commentDtos = getNameAuthor(item);
             itemDto.setComments(commentDtos);
         }
         return itemDto;
+    }
+
+    private List<CommentDto> getNameAuthor(Item item) {
+        List<CommentDto> commentDtos = new ArrayList<>();
+        for (Comment comment : item.getComments()) {
+            CommentDto commentDto = CommentMapper.mapToCommentDto(comment);
+            String authorName = commentService.getNameAuthorByCommentId(comment.getId());
+            commentDto.setAuthorName(authorName);
+            commentDtos.add(commentDto);
+        }
+        return commentDtos;
     }
 
     @Override
@@ -102,24 +109,32 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto saveItem(long userId, ItemDto itemDto) {
 
         if (userId < 1) {
-            throw new ValidationException("ID cannot be negative.");
+            throw new ValidationException("Id cannot be negative");
         }
 
         if (itemDto.getName() == null) {
-            throw new ValidationException("Name cannot be empty.");
+            throw new ValidationException("Name cannot be empty");
         }
 
         if (itemDto.getDescription() == null) {
-            throw new ValidationException("Description cannot be empty.");
+            throw new ValidationException("Description cannot be empty");
         }
 
         if (userService.getUserById(userId) == null) {
-            throw new ResourceNotFoundException("User with the specified ID does not exist.");
+            throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
         Item item = ItemMapper.mapToNewItem(itemDto);
         item.setOwner(userId);
+
+        if (itemDto.getRequestId() != null) {
+            ItemRequest request = new ItemRequest();
+            request.setId(itemDto.getRequestId());
+            item.setRequest(request);
+        }
+
         item = itemRepository.save(item);
+
         ItemDto dto = ItemMapper.mapToItemDto(item);
         dto.setNextBooking(findNextBookingByItemId(item.getId()));
         dto.setLastBooking(findLastBookingByItemId(item.getId()));
@@ -138,22 +153,20 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto addComment(long userId, long itemId, String text) {
-        LocalDateTime commentAllowedTime = LocalDateTime.now().minusHours(commentDelayHours);
+        boolean hasBooking = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
+                itemId, userId, BookingStatus.APPROVED, LocalDateTime.now());
 
-        boolean hasFutureBooking = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
-                itemId, userId, BookingStatus.APPROVED, commentAllowedTime);
-
-        if (!hasFutureBooking) {
-            throw new ValidationException("User with ID " + userId + " has a future booking for item with ID " + itemId
-                    + ". Cannot add comment until the booking is completed.");
+        if (!hasBooking) {
+            throw new ValidationException("User with ID " + userId + " must have a completed booking for item with ID " + itemId
+                    + " to add a comment.");
         }
 
         if (text.isBlank()) {
-            throw new ValidationException("Comment text cannot be empty.");
+            throw new ValidationException("Comment text cannot be empty");
         }
 
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item not found with ID: " + itemId));
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new ResourceNotFoundException("Item not found with ID: " + itemId));
 
         UserDto user = userService.getUserById(userId);
 
@@ -176,26 +189,17 @@ public class ItemServiceImpl implements ItemService {
         return commentDto;
     }
 
-    private List<CommentDto> getAuthorName(Item item) {
-        List<CommentDto> commentDtos = new ArrayList<>();
-        for (Comment comment : item.getComments()) {
-            CommentDto commentDto = CommentMapper.mapToCommentDto(comment);
-            String authorName = commentService.getNameAuthorByCommentId(comment.getId());
-            commentDto.setAuthorName(authorName);
-            commentDtos.add(commentDto);
-        }
-        return commentDtos;
-    }
-
     private BookingDto findLastBookingByItemId(long itemId) {
-        Booking lastBooking = bookingRepository.findFirstBookingByItemIdAndStatusAndStartIsBefore(itemId,
+        Booking lastBookings = bookingRepository.findFirstBookingByItemIdAndStatusAndStartIsBefore(itemId,
                 BookingStatus.APPROVED, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
-        return BookingMapper.mapToBookingDto(lastBooking);
+        BookingDto lastBookingsDTO = BookingMapper.mapToBookingDto(lastBookings);
+        return lastBookingsDTO;
     }
 
     private BookingDto findNextBookingByItemId(long itemId) {
-        Booking nextBooking = bookingRepository.findFirstBookingByItemIdAndStatusAndStartIsAfter(itemId,
+        Booking nextBookings = bookingRepository.findFirstBookingByItemIdAndStatusAndStartIsAfter(itemId,
                 BookingStatus.APPROVED, LocalDateTime.now(), Sort.by(Sort.Direction.ASC, "start"));
-        return BookingMapper.mapToBookingDto(nextBooking);
+        BookingDto nextBookingsDTO = BookingMapper.mapToBookingDto(nextBookings);
+        return nextBookingsDTO;
     }
 }

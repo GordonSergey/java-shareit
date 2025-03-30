@@ -5,6 +5,7 @@ import ru.practicum.shareit.comment.CommentMapper;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
+                .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
                 .build();
 
         if (item.getComments() != null) {
@@ -47,7 +49,13 @@ public class ItemMapper {
         item.setDescription(itemDto.getDescription());
         item.setAvailable(itemDto.getAvailable());
         item.setOwner(0);
-        item.setRequest(0);
+
+        if (itemDto.getRequestId() != null) {
+            ItemRequest request = new ItemRequest();
+            request.setId(itemDto.getRequestId());
+            item.setRequest(request);
+        }
+
         return item;
     }
 }

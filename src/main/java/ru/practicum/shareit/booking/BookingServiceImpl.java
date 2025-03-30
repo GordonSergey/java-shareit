@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class BookingServiceImpl implements BookingService {
@@ -164,6 +165,22 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    private List<Booking> findPastBookingsByOwnerId(long userId) {
+        return repository.findBookingsByItemOwnerAndEndBeforeOrderByEndDesc(userId, LocalDateTime.now());
+    }
+
+    private List<Booking> findPastBookingsByBookerId(long userId) {
+        return repository.findBookingsByBookerIdAndEndBeforeOrderByEndDesc(userId, LocalDateTime.now());
+    }
+
+    private List<Booking> findCurrentBookingsByOwnerId(long userId) {
+        return repository.findBookingsByItemOwnerAndStartBeforeAndEndAfter(userId, LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private List<Booking> findCurrentBookingsByBookerId(long userId) {
+        return repository.findBookingsByBookerIdAndStartBeforeAndEndAfter(userId, LocalDateTime.now(), LocalDateTime.now());
+    }
+
     @Override
     public List<Booking> findBookingsByStateAndBookerId(long userId, String state) {
         if (state != null) {
@@ -244,21 +261,5 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings = repository.findBookingsByBookerIdAndStatus(userId, BookingStatus.REJECTED,
                 Sort.by(Sort.Direction.DESC, "start"));
         return bookings;
-    }
-
-    private List<Booking> findPastBookingsByOwnerId(long userId) {
-        return repository.findBookingsByItemOwnerAndEndBeforeOrderByEndDesc(userId, LocalDateTime.now());
-    }
-
-    private List<Booking> findPastBookingsByBookerId(long userId) {
-        return repository.findBookingsByBookerIdAndEndBeforeOrderByEndDesc(userId, LocalDateTime.now());
-    }
-
-    private List<Booking> findCurrentBookingsByOwnerId(long userId) {
-        return repository.findBookingsByItemOwnerAndStartBeforeAndEndAfter(userId, LocalDateTime.now(), LocalDateTime.now());
-    }
-
-    private List<Booking> findCurrentBookingsByBookerId(long userId) {
-        return repository.findBookingsByBookerIdAndStartBeforeAndEndAfter(userId, LocalDateTime.now(), LocalDateTime.now());
     }
 }

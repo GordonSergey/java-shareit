@@ -18,12 +18,12 @@ public class CommentDto {
 
     private Long id;
 
-    @NotBlank(groups = Create.class, message = "Text cannot be empty")
+    @NotBlank(groups = Create.class, message = "Текст не может быть пустым")
     private String text;
 
-    @NotBlank(groups = Create.class, message = "Name cannot be empty")
+    @NotBlank(groups = Create.class, message = "Имя не может быть пустым")
     private String authorName;
 
-    @NotNull(message = "Comment creation date cannot be empty")
+    @NotNull(message = "Дата создания комментария не может быть пустой")
     private LocalDateTime created;
 }

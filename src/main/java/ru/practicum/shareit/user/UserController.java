@@ -35,22 +35,22 @@ public class UserController {
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto getUserById(@PathVariable("userId") Long userId) {
-        log.info("Fetching user with id: {}", userId);
+        log.info("Вывод пользователя под id: {}", userId);
         return userService.getUserById(userId);
     }
 
     @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto update(@PathVariable("userId") long userId, @RequestBody UserDto userDto) {
-        log.info("Updating user with id: {}", userId);
+        log.info("Вывод пользователя под id: {}", userId);
         return userService.update(userId, userDto);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public String deleteUserById(@PathVariable("userId") long userId) {
-        log.info("Deleted user with id: {}", userId);
+        log.info("Удалён пользователь под id: {}", userId);
         userService.deleteUserById(userId);
-        return "User successfully deleted";
+        return "Пользователь успешно удалён";
     }
 }

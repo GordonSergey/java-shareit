@@ -20,12 +20,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(groups = Create.class, message = "Name cannot be empty")
+    @NotBlank(groups = Create.class, message = "Имя не может быть пустым")
     @Column(name = "name")
     private String name;
 
-    @NotBlank(groups = Create.class, message = "Email cannot be empty")
-    @Email(groups = Create.class, message = "Email cannot be empty and must contain the '@' symbol")
+    @NotBlank(groups = Create.class, message = "Электронная почта не может быть пустым")
+    @Email(groups = Create.class, message = "электронная почта не может быть пустой и должна содержать символ @")
     @Column(name = "email", unique = true)
     private String email;
 }

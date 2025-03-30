@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.intf.Create;
 import jakarta.validation.constraints.NotNull;
+import ru.practicum.shareit.request.ItemRequest;
+
 import java.util.List;
 
 @Data
@@ -23,23 +25,24 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(groups = Create.class, message = "Name cannot be empty")
+    @NotBlank(groups = Create.class, message = "Имя не может быть пустым")
     @Column(name = "name")
     private String name;
 
-    @NotBlank(groups = Create.class, message = "Description cannot be empty")
+    @NotBlank(groups = Create.class, message = "Описание не может быть пустым")
     @Column(name = "description")
     private String description;
 
-    @NotNull(groups = Create.class, message = "Availability status cannot be empty")
+    @NotNull(groups = Create.class, message = "Описание не может быть пустым")
     @Column(name = "is_available")
     private Boolean available;
 
     @Column(name = "owner_id")
     private long owner;
 
-    @Column(name = "request_id")
-    private long request;
+    @ManyToOne
+    @JoinColumn(name = "request_id")
+    private ItemRequest request;
 
     @OneToMany(mappedBy = "itemId", cascade = CascadeType.ALL)
     private List<Comment> comments;

@@ -15,10 +15,10 @@ public class UserDto {
 
     private Long id;
 
-    @NotBlank(groups = Create.class, message = "Name cannot be empty")
+    @NotBlank(groups = Create.class, message = "Имя не может быть пустым")
     private String name;
 
-    @NotBlank(groups = Create.class, message = "Email cannot be empty")
-    @Email(groups = Create.class, message = "Email cannot be empty and must contain the '@' symbol")
+    @NotBlank(groups = Create.class, message = "Электронная почта не может быть пустым")
+    @Email(groups = Create.class, message = "Электронная почта не может быть пустой и должна содержать символ @")
     private String email;
 }

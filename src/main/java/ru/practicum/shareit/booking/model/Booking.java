@@ -27,29 +27,29 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotNull(groups = Create.class, message = "Time cannot be empty")
-    @FutureOrPresent(groups = Create.class, message = "The booking start time must be in the future")
+    @NotNull(groups = Create.class, message = " Время не может быть пустым")
+    @FutureOrPresent(groups = Create.class, message = "Время начала бронирования должно быть в будущем")
     @Column(name = "start_date")
     private LocalDateTime start;
 
-    @NotNull(groups = Create.class, message = "Time cannot be empty")
-    @Future(groups = Create.class, message = "The booking end time must be in the future")
+    @NotNull(groups = Create.class, message = " Время не может быть пустым")
+    @Future(groups = Create.class, message = "Время окончания бронирования должно быть в будущем")
     @Column(name = "end_date")
     private LocalDateTime end;
 
     @ManyToOne
-    @NotNull(groups = Create.class, message = "The item cannot be empty")
+    @NotNull(groups = Create.class, message = "Предмет не может быть пустым")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "item_id")
     private Item item;
 
     @ManyToOne
-    @NotNull(groups = Create.class, message = "The booker cannot be empty")
+    @NotNull(groups = Create.class, message = "Бронирующий не может быть пустым")
     @JoinColumn(name = "booker_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User booker;
 
-    @NotNull(groups = Create.class, message = "Status cannot be empty")
+    @NotNull(groups = Create.class, message = "Статус не может быть пустым")
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private BookingStatus status;

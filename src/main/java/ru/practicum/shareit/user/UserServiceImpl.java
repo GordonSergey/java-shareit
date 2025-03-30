@@ -27,11 +27,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto saveUser(UserDto userDto) {
         if (userDto.getName() == null || userDto.getName().isBlank()) {
-            throw new ValidationException("Name cannot be empty");
+            throw new ValidationException("Имя не может быть пустым");
         }
 
         if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
-            throw new ValidationException("Email cannot be empty");
+            throw new ValidationException("Электронная почта не может быть пустым");
         }
 
         User user = repository.save(UserMapper.mapToNewUser(userDto));
@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUserById(long userId) {
         if (userId < 1) {
-            throw new ValidationException("ID cannot be negative");
+            throw new ValidationException("Id не может быть отрицательным");
         }
         repository.deleteUserById(userId);
     }

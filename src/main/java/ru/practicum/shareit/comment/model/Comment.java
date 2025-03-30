@@ -15,19 +15,19 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Comment text cannot be empty")
+    @NotBlank(message = "Текст комментария не может быть пустым")
     @Column(name = "text")
     private String text;
 
-    @NotNull(message = "Item ID cannot be empty")
+    @NotNull(message = "ID предмета не может быть пустым")
     @Column(name = "item_id")
     private Long itemId;
 
-    @NotNull(message = "Author ID cannot be empty")
+    @NotNull(message = "ID автора не может быть пустым")
     @Column(name = "author_id")
     private Long authorId;
 
-    @NotNull(message = "Comment creation date cannot be empty")
+    @NotNull(message = "Дата создания комментария не может быть пустой")
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }

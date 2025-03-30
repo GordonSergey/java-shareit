@@ -20,15 +20,15 @@ public class BookingDto {
 
     private long id;
 
-    @FutureOrPresent(groups = Create.class, message = "The booking start time must be in the future")
-    @NotNull(groups = Create.class, message = "Time cannot be empty")
+    @FutureOrPresent(groups = Create.class, message = "Время начала бронирования должно быть в будущем")
+    @NotNull(groups = Create.class, message = " Время не может быть пустым")
     private LocalDateTime start;
 
-    @Future(groups = Create.class, message = "The booking end time must be in the future")
-    @NotNull(groups = Create.class, message = "Time cannot be empty")
+    @Future(groups = Create.class, message = "Время окончания бронирования должно быть в будущем")
+    @NotNull(groups = Create.class, message = " Время не может быть пустым")
     private LocalDateTime end;
 
-    @NotNull(groups = Create.class, message = "The item cannot be empty")
+    @NotNull(groups = Create.class, message = "Предмет не может быть пустым")
     private long itemId;
 
     private long bookerId;
