@@ -48,17 +48,14 @@ public class ItemControllerIT {
 
     @Test
     @DisplayName("Создание нового предмета")
-    void createItem_ReturnsNewItem() throws Exception
-    {
+    void createItem_ReturnsNewItem() throws Exception {
         long userId = 1L;
-        String itemJson = """
-        {
-            "name": "Новая дрель",
-            "description": "Мощная аккумуляторная дрель",
-            "available": true,
-            "requestId": 1
-        }
-        """;
+        String itemJson = "{"
+                + "\"name\": \"Новая дрель\","
+                + "\"description\": \"Мощная аккумуляторная дрель\","
+                + "\"available\": true,"
+                + "\"requestId\": 1"
+                + "}";
 
         var requestBuilder = MockMvcRequestBuilders.post("/items")
                 .header("X-Sharer-User-Id", userId)
