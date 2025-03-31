@@ -1,4 +1,4 @@
-package ru.practicum.shareit.integrationTest;
+package ru.practicum.shareit.integration.test;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.integrationTest;
+package ru.practicum.shareit.integration.test;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -19,14 +19,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@DisplayName("Интеграционные тесты user контроллера")
-public class UserControllerIT {
+@DisplayName("Интеграционные тесты booking контроллера")
+public class BookingControllerIT {
 
     @Autowired
     MockMvc mockMvc;
@@ -48,28 +47,23 @@ public class UserControllerIT {
     }
 
     @Test
-    @DisplayName("Корректное возвращение списка пользователей")
-    void findUsers_ReturnsUsersList() throws Exception {
-        var requestBuilder = MockMvcRequestBuilders.get("/users")
-                .header("X-Sharer-User-Id", 1L);
+    @DisplayName("Корректное возвращение списка бронирований при запросе")
+    void findBookings_ReturnsBookingList() throws Exception {
+        long userId = 1L;
+        var requestBuilder = MockMvcRequestBuilders.get("/bookings")
+                .header("X-Sharer-User-Id", userId);
 
         this.mockMvc.perform(requestBuilder)
-                .andDo(print())
+                //then
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(4))
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Тестовый Пользователь"))
-                .andExpect(jsonPath("$[0].email").value("test@example.com"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].name").value("Тестовый Пользователь 2"))
-                .andExpect(jsonPath("$[1].email").value("test2@example.com"))
-                .andExpect(jsonPath("$[2].id").value(3))
-                .andExpect(jsonPath("$[2].name").value("Иван Иванов"))
-                .andExpect(jsonPath("$[2].email").value("ivan@example.com"))
-                .andExpect(jsonPath("$[3].id").value(4))
-                .andExpect(jsonPath("$[3].name").value("Петр Петров"))
-                .andExpect(jsonPath("$[3].email").value("petr@example.com"));
+                .andExpect(jsonPath("$[0].id").value(3))
+                .andExpect(jsonPath("$[0].start").exists())
+                .andExpect(jsonPath("$[0].end").exists())
+                .andExpect(jsonPath("$[0].item.id").value(3))
+                .andExpect(jsonPath("$[0].item.name").value("Лестница"))
+                .andExpect(jsonPath("$[0].booker.id").value(1))
+                .andExpect(jsonPath("$[0].booker.name").value("Тестовый Пользователь"))
+                .andExpect(jsonPath("$[0].status").value("REJECTED"));
     }
 }
