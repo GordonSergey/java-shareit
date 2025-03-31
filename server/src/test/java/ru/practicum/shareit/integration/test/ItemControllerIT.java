@@ -48,7 +48,8 @@ public class ItemControllerIT {
 
     @Test
     @DisplayName("Создание нового предмета")
-    void createItem_ReturnsNewItem() throws Exception {
+    void createItem_ReturnsNewItem() throws Exception
+    {
         long userId = 1L;
         String itemJson = """
         {
