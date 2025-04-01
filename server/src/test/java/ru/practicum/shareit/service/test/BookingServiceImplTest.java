@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.data.domain.Sort;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingServiceImpl;
@@ -173,5 +174,28 @@ public class BookingServiceImplTest {
     @Test void findBookingsByBookerId_shouldThrowIfEmpty() {
         when(bookingRepository.findBookingsByBookerIdOrderByStartDesc(user.getId())).thenReturn(Collections.emptyList());
         assertThrows(ResourceNotFoundException.class, () -> bookingService.findBookingsByBookerId(user.getId()));
+    }
+
+    @Test
+    void findBookingsByStateAndBookerId_shouldReturnAll() {
+        when(bookingRepository.findBookingsByBookerIdOrderByStartDesc(user.getId()))
+                .thenReturn(List.of(booking));
+        List<Booking> result = bookingService.findBookingsByStateAndBookerId(user.getId(), "ALL");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void shouldReturnFutureBookingsForOwner() {
+        // Arrange
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        when(bookingRepository.existsBookingsByBookerIdOrItemOwner(user.getId(), user.getId())).thenReturn(true);
+        when(bookingRepository.findBookingsByItemOwner(eq(user.getId()), any(Sort.class))).thenReturn(List.of(booking));
+
+        // Act
+        List<Booking> result = bookingService.findBookingsByStateAndOwnerId(user.getId(), "FUTURE");
+
+        // Assert
+        assertEquals(1, result.size());
     }
 }
