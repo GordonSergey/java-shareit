@@ -3,16 +3,19 @@ package ru.practicum.shareit.service.test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.comment.CommentRepository;
 import ru.practicum.shareit.comment.CommentService;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.exception.ResourceNotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserDto;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -122,6 +125,10 @@ public class ItemServiceImplTest {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(userService.getUserById(1L)).thenReturn(user);
 
+        when(bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
+                eq(1L), eq(1L), eq(BookingStatus.APPROVED), any(LocalDateTime.class))
+        ).thenReturn(true);
+
         Comment comment = new Comment();
         comment.setId(1L);
         comment.setText("text");
@@ -132,6 +139,29 @@ public class ItemServiceImplTest {
 
         assertEquals("text", result.getText());
         assertEquals("user", result.getAuthorName());
+    }
+
+    @Test
+    void addComment_WithoutBooking_ShouldThrowException() {
+        Item item = new Item();
+        item.setId(1L);
+        item.setComments(new ArrayList<>());
+
+        UserDto user = new UserDto();
+        user.setId(1L);
+        user.setName("user");
+
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(userService.getUserById(1L)).thenReturn(user);
+
+        when(bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
+                eq(1L), eq(1L), eq(BookingStatus.APPROVED), any(LocalDateTime.class))
+        ).thenReturn(false);
+
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> itemService.addComment(1L, 1L, "text"));
+
+        assertEquals("A comment can only be left after the booking is completed.", ex.getMessage());
     }
 
     @Test

@@ -15,6 +15,7 @@ import ru.practicum.shareit.comment.CommentService;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.exception.ResourceNotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -139,16 +140,25 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto addComment(long userId, long itemId, String text) {
-
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new ResourceNotFoundException("Item not found with ID: " + itemId));
 
         UserDto user = userService.getUserById(userId);
 
+        boolean hasCompletedBooking = bookingRepository
+                .existsByItemIdAndBookerIdAndStatusAndEndBefore(
+                        itemId, userId, BookingStatus.APPROVED, LocalDateTime.now()
+                );
+
+        if (!hasCompletedBooking) {
+            throw new ValidationException("A comment can only be left after the booking is completed.");
+        }
+
         Comment comment = new Comment();
         comment.setText(text);
         comment.setItemId(itemId);
         comment.setAuthorId(userId);
+        comment.setCreatedAt(LocalDateTime.now());
         commentRepository.save(comment);
 
         List<Comment> comments = item.getComments();
