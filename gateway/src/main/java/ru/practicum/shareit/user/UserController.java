@@ -26,8 +26,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Object> updateUser(@PathVariable @Positive long id,
-                                             @RequestBody UserDto userDto) {
+    public ResponseEntity<Object> updateUser(@PathVariable @Positive long id, @RequestBody UserDto userDto) {
         log.info("GATEWAY: PATCH /users/{}: {}", id, userDto);
         return userClient.updateUser(id, userDto);
     }

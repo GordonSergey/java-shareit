@@ -17,51 +17,68 @@ import ru.practicum.shareit.intf.Create;
 @Validated
 public class BookingController {
 
-	private final BookingClient bookingClient;
+    private final BookingClient bookingClient;
 
-	private static final String USER_ID = "X-Sharer-User-Id";
+    private static final String USER_ID = "X-Sharer-User-Id";
 
-	@PostMapping
-	public ResponseEntity<Object> createBooking(@RequestHeader(USER_ID) long userId,
-												@RequestBody @Validated(Create.class) BookingDto bookingDto) {
-		log.info("POST /bookings: userId={}, booking={}", userId, bookingDto);
-		return bookingClient.createBooking(userId, bookingDto);
-	}
+    @PostMapping
+    public ResponseEntity<Object> createBooking(
+            @RequestHeader(USER_ID)                      long userId,
+            @RequestBody @Validated(Create.class)        BookingDto bookingDto
+                                               ) {
+        log.info("POST /bookings: userId={}, booking={}", userId, bookingDto);
+        return bookingClient.createBooking(userId, bookingDto);
+    }
 
-	@PatchMapping("/{bookingId}")
-	public ResponseEntity<Object> approveBooking(@RequestHeader(USER_ID) long userId,
-												 @PathVariable long bookingId,
-												 @RequestParam("approved") boolean approved) {
-		log.info("PATCH /bookings/{}?approved={}: userId={}", bookingId, approved, userId);
-		return bookingClient.approveBooking(userId, bookingId, approved);
-	}
+    @PatchMapping("/{bookingId}")
+    public ResponseEntity<Object> approveBooking(
+            @RequestHeader(USER_ID)       long userId,
+            @PathVariable                 long bookingId,
+            @RequestParam("approved")     boolean approved
+                                                ) {
+        log.info("PATCH /bookings/{}?approved={}: userId={}", bookingId, approved, userId);
+        return bookingClient.approveBooking(userId, bookingId, approved);
+    }
 
-	@GetMapping("/{bookingId}")
-	public ResponseEntity<Object> getBookingById(@RequestHeader(USER_ID) long userId,
-												 @PathVariable long bookingId) {
-		log.info("GET /bookings/{}: userId={}", bookingId, userId);
-		return bookingClient.getBookingById(userId, bookingId);
-	}
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<Object> getBookingById(
+            @RequestHeader(USER_ID) long userId,
+            @PathVariable           long bookingId
+                                                ) {
+        log.info("GET /bookings/{}: userId={}", bookingId, userId);
+        return bookingClient.getBookingById(userId, bookingId);
+    }
 
-	@GetMapping("/")
-	public ResponseEntity<Object> getBookingsByBooker(@RequestHeader(USER_ID) long userId) {
-		log.info("GET /bookings/: userId={}", userId);
-		return bookingClient.getBookingsByBooker(userId);
-	}
+    @GetMapping("/")
+    public ResponseEntity<Object> getBookingsByBooker(
+            @RequestHeader(USER_ID) long userId
+                                                     ) {
+        log.info("GET /bookings/: userId={}", userId);
+        return bookingClient.getBookingsByBooker(userId);
+    }
 
-	@GetMapping("/owner")
-	public ResponseEntity<Object> getBookingsByOwner(@RequestHeader(USER_ID) long userId,
-													 @RequestParam(value = "state", defaultValue = "ALL") String state) {
-		log.info("GET /bookings/owner?state={}: userId={}", state, userId);
-		return bookingClient.getBookingsByOwner(userId, state);
-	}
+    @GetMapping("/owner")
+    public ResponseEntity<Object> getBookingsByOwner(
+            @RequestHeader(USER_ID)                        long userId,
+            @RequestParam(value = "state", defaultValue = "ALL")
+            String state
+                                                    ) {
+        log.info("GET /bookings/owner?state={}: userId={}", state, userId);
+        return bookingClient.getBookingsByOwner(userId, state);
+    }
 
-	@GetMapping
-	public ResponseEntity<Object> getBookingsByState(@RequestHeader(USER_ID) long userId,
-													 @RequestParam(value = "state", defaultValue = "ALL") String state,
-													 @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero Integer from,
-													 @RequestParam(value = "size", defaultValue = "10") @Positive Integer size) {
-		log.info("GET /bookings?state={}: userId={}, from={}, size={}", state, userId, from, size);
-		return bookingClient.getBookingsByBookerAndState(userId, state);
-	}
+    @GetMapping
+    public ResponseEntity<Object> getBookingsByState(
+            @RequestHeader(USER_ID)                        long userId,
+            @RequestParam(value = "state", defaultValue = "ALL")
+            String state,
+            @RequestParam(value = "from", defaultValue = "0")
+            @PositiveOrZero                                Integer from,
+            @RequestParam(value = "size", defaultValue = "10")
+            @Positive                                      Integer size
+                                                    ) {
+        log.info("GET /bookings?state={}: userId={}, from={}, size={}",
+                 state, userId, from, size);
+        return bookingClient.getBookingsByBookerAndState(userId, state);
+    }
 }

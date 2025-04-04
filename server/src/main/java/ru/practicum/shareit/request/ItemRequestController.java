@@ -16,24 +16,28 @@ public class ItemRequestController {
     private final ItemRequestService requestService;
 
     @PostMapping
-    public ResponseEntity<ItemRequestDto> createRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                        @RequestBody ItemRequestDto requestDto) {
+    public ResponseEntity<ItemRequestDto> createRequest(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestBody ItemRequestDto requestDto) {
         return ResponseEntity.ok(requestService.createRequest(userId, requestDto));
     }
 
     @GetMapping
-    public ResponseEntity<List<ItemRequestWithResponsesDto>> getOwnRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ResponseEntity<List<ItemRequestWithResponsesDto>> getOwnRequests(
+            @RequestHeader("X-Sharer-User-Id") Long userId) {
         return ResponseEntity.ok(requestService.getOwnRequests(userId));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<ItemRequestWithResponsesDto>> getAllRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ResponseEntity<List<ItemRequestWithResponsesDto>> getAllRequests(
+            @RequestHeader("X-Sharer-User-Id") Long userId) {
         return ResponseEntity.ok(requestService.getAllRequests(userId));
     }
 
     @GetMapping("/{requestId}")
-    public ResponseEntity<ItemRequestWithResponsesDto> getRequestById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                                      @PathVariable Long requestId) {
+    public ResponseEntity<ItemRequestWithResponsesDto> getRequestById(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PathVariable Long requestId) {
         return ResponseEntity.ok(requestService.getRequestById(userId, requestId));
     }
 }
